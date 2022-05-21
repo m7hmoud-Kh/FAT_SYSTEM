@@ -20,35 +20,15 @@ namespace simple_Shell
             return me;
         }
 
-        public struct dirCluster
+        /*public struct dirCluster
         {
             public dirCluster()
             { }
 
             public byte[] b = new byte[1024];
-        }
+        }*/
 
-        public static byte[] ConvertContentToBytes(string Con)
-        {
-            byte[] contentBytes = new byte[Con.Length];
-            for (int i = 0; i < Con.Length; i++)
-            {
-                contentBytes[i] = (byte)Con[i];
-            }
-            return contentBytes;
-        }// this function will iterate in whole content and take each character and convert it into byte format.
-        public static string ConvertBytesToContent(byte[] bytes)
-        {
-            string con = string.Empty;
-            for (int i = 0; i < bytes.Length; i++)
-            {
-                if ((char)bytes[i] != '\0')
-                    con += (char)bytes[i];
-                else
-                    break;
-            }
-            return con;
-        }
+
 
         public void writeFile() 
         {
@@ -147,6 +127,26 @@ namespace simple_Shell
 
         }
 
-
+        public static byte[] ConvertContentToBytes(string Con)
+        {
+            byte[] contentBytes = new byte[Con.Length];
+            for (int i = 0; i < Con.Length; i++)
+            {
+                contentBytes[i] = (byte)Con[i];
+            }
+            return contentBytes;
+        }// this function will iterate in whole content and take each character and convert it into byte format.
+        public static string ConvertBytesToContent(byte[] bytes)
+        {
+            string con = string.Empty;
+            for (int i = 0; i < bytes.Length; i++)
+            {
+                if ((char)bytes[i] != '\0')
+                    con += (char)bytes[i];
+                else
+                    break;
+            }
+            return con;
+        }
     }
 }

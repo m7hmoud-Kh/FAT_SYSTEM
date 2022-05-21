@@ -48,7 +48,7 @@
                         return;
                     }
                     else {
-                        moveToDir(token.value);
+                        cd(token.value);
                     }
                     break;
 
@@ -60,7 +60,7 @@
                     }
                     else
                     {
-                        makeFolder(token.value);
+                        md(token.value);
                     }
                     break;
                 case "dir":
@@ -150,9 +150,9 @@
         }
 
 
-        public static void moveToDir(string path) 
+        public static void cd(string path) 
         {
-            Directory dir = moveTodir(path,true,false);
+            Directory dir = changeMyCurrentDirectory(path,true,false);
             if (dir != null)
             {
                 dir.ReadDirectory();
@@ -165,7 +165,7 @@
         }
         public static void moveToDirUsedInAnother(string path)
         {
-            Directory dir = moveTodir(path, false, false);
+            Directory dir = changeMyCurrentDirectory(path, false, false);
             if (dir != null)
             {
                 dir.ReadDirectory();
@@ -177,7 +177,7 @@
             }
         }
 
-        private static Directory moveTodir(string p,bool usedInCD,bool isUsedInRD)
+        private static Directory changeMyCurrentDirectory(string p,bool usedInCD,bool isUsedInRD)
         {
             Directory d = null;
             string[] arr = p.Split('\\');
@@ -292,10 +292,10 @@
         }
 
 
-        public static void makeFolder(string name)
+        public static void md(string name)
         {
             string[] arr = name.Split('\\');
-            if (arr.Length == 1) // md folderName
+            if (arr.Length == 1) // md [folderName]
             {
                 if (Program.current.searchDirectory(arr[0]) == -1)// there is no folder with the name user entered
                 {
@@ -318,9 +318,9 @@
                 else
                     Console.WriteLine($"{arr[0]} is aready existed :(");
             }
-            else if (arr.Length > 1)
+            else if (arr.Length > 1)// md [fullPath] 
             {
-                Directory dir = moveTodir(name,false,false);
+                Directory dir = changeMyCurrentDirectory(name,false,false);
                 if (dir == null)
                     Console.WriteLine($"The Path {name} Is not exist");
                 else
@@ -370,7 +370,7 @@
       
 
             string[] arr = name.Split('\\');
-            Directory dir = moveTodir(name,false,true);
+            Directory dir = changeMyCurrentDirectory(name,false,true);
             if (dir != null)
             {
                  Console.Write($"Are you sure that you want to delete {new string(dir.dir_name).Trim()} , please enter Y for yes or N for no:");
@@ -406,7 +406,6 @@
                     FILE newFile = new FILE(name, 0X0, fc, Program.current, content, size);
 
                     newFile.writeFile();
-                    //FAT.writeFat();
 
                     DirectoryEntry d = new DirectoryEntry(new string(name), 0X0, fc, size);
                     Program.current.entries.Add(d);
@@ -428,28 +427,45 @@
             string[] path = name.Split("\\");
             if (path.Length > 1)
             {
-                for (int i = 1; i < path.Length - 1; i++)
-                    moveToDirUsedInAnother(path[i]);
-
-                name = path[path.Length - 1];
+                Directory dir = changeMyCurrentDirectory(name, false, false);
+                if (dir == null)
+                    Console.WriteLine($"The Path {name} Is not exist");
+                else
+                {
+                    name = path[path.Length - 1];
+                    int j = dir.searchDirectory(name);
+                    if (j != -1)
+                    {
+                        int fc = dir.entries[j].firs_cluster;
+                        int sz = dir.entries[j].dir_fileSize;
+                        string content = null;
+                        FILE file = new FILE(name, 0x0, fc, dir, content, sz);
+                        file.ReadFile();
+                        Console.WriteLine(file.content);
+                    }
+                    else
+                    {
+                        Console.WriteLine("The System could not found the file specified");
+                    }
+                }
             }
-
-            int j = Program.current.searchDirectory(name);
-            if (j != -1)
+            else
             {
-                int fc = Program.current.entries[j].firs_cluster;
-                int sz = Program.current.entries[j].dir_fileSize;
-                string content = null;
-                FILE file = new FILE(name,0x0,fc,Program.current,content,sz);
-                file.ReadFile();
-                Console.WriteLine(file.content);
+                int j = Program.current.searchDirectory(name);
+                if (j != -1)
+                {
+                    int fc = Program.current.entries[j].firs_cluster;
+                    int sz = Program.current.entries[j].dir_fileSize;
+                    string content = null;
+                    FILE file = new FILE(name, 0x0, fc, Program.current, content, sz);
+                    file.ReadFile();
+                    Console.WriteLine(file.content);
+                }
+                else
+                {
+                    Console.WriteLine("The System could not found the file specified");
+                }
             }
-            else {
-                Console.WriteLine("The System could not found the file specified");
-            }
-            Directory rootDirectory = new Directory("M:", 0x10, 5, null);
-            Program.current = rootDirectory;
-            Program.current.ReadDirectory();
         }
 
         public static void export(string source, string dest)
@@ -457,39 +473,69 @@
             string[] path = source.Split("\\");
             if (path.Length > 1)
             {
-                for (int i = 1; i < path.Length - 1; i++)
-                    moveToDirUsedInAnother(path[i]);
-
-                source = path[path.Length - 1];
-            }
-            int j = Program.current.searchDirectory(source);
-            if (j != -1)
-            {
-                if (System.IO.Directory.Exists(dest))
-                {
-                    int fc = Program.current.entries[j].firs_cluster;
-                    int sz = Program.current.entries[j].dir_fileSize;
-                    string content = null;
-                    FILE file = new FILE(source, 0x0, fc, Program.current, content, sz);
-                    file.ReadFile();
-                    StreamWriter sw = new StreamWriter(dest + "\\" + source);
-                    sw.Write(file.content);
-                    sw.Flush();
-                    sw.Close();
-                }
+                Directory dir = changeMyCurrentDirectory(source, false, false);
+                if (dir == null)
+                    Console.WriteLine($"The Path {source} Is not exist");
                 else
                 {
-                    Console.WriteLine("The system cannot find the path specified in hte coputer dis");
+                    source = path[path.Length - 1];
+
+                    int j = dir.searchDirectory(source);
+                    if (j != -1)
+                    {
+                        if (System.IO.Directory.Exists(dest))
+                        {
+                            int fc = dir.entries[j].firs_cluster;
+                            int sz = dir.entries[j].dir_fileSize;
+                            string content = null;
+                            FILE file = new FILE(source, 0x0, fc, dir, content, sz);
+                            file.ReadFile();
+                            StreamWriter sw = new StreamWriter(dest + "\\" + source);
+                            sw.Write(file.content);
+                            sw.Flush();
+                            sw.Close();
+                        }
+                        else
+                        {
+                            Console.WriteLine("The system cannot find the path specified in hte coputer dis");
+                        }
+
+                    }
+                    else
+                    {
+                        Console.WriteLine("The system cannot find the file you want to export in the virtual disk");
+                    }
                 }
 
             }
             else
             {
-                Console.WriteLine("The system cannot find the file you want to export in the virtual disk");
-            }
-            Directory rootDirectory = new Directory("M:", 0x10, 5, null);
-            Program.current = rootDirectory;
-            Program.current.ReadDirectory();
+                int j = Program.current.searchDirectory(source);
+                if (j != -1)
+                {
+                    if (System.IO.Directory.Exists(dest))
+                    {
+                        int fc = Program.current.entries[j].firs_cluster;
+                        int sz = Program.current.entries[j].dir_fileSize;
+                        string content = null;
+                        FILE file = new FILE(source, 0x0, fc, Program.current, content, sz);
+                        file.ReadFile();
+                        StreamWriter sw = new StreamWriter(dest + "\\" + source);
+                        sw.Write(file.content);
+                        sw.Flush();
+                        sw.Close();
+                    }
+                    else
+                    {
+                        Console.WriteLine("The system cannot find the path specified in hte coputer dis");
+                    }
+
+                }
+                else
+                {
+                    Console.WriteLine("The system cannot find the file you want to export in the virtual disk");
+                }
+            }                   
         }
 
         public static void rename(string oldName, string newName)
@@ -497,51 +543,232 @@
             string[] path = oldName.Split("\\"); //old name could be path
             if (path.Length > 1)
             {
-                for (int i = 1; i < path.Length - 1; i++)
-                    moveToDirUsedInAnother(path[i]);
-
-                oldName = path[path.Length - 1];
-            }
-
-            int j = Program.current.searchDirectory(oldName);
-            if (j != -1)
-            {
-                if (Program.current.searchDirectory(newName) == -1)
-                {
-                    DirectoryEntry d = Program.current.entries[j];
-
-
-
-                    if (d.dir_attr == 0x0)
-                    {
-                        string[] fileName = newName.Split('.');
-                        char[] goodName = getProperFileName(fileName[0].ToCharArray(), fileName[1].ToCharArray());
-                        d.dir_name = goodName;
-                    }
-                    else if (d.dir_attr == 0x10)
-                    {
-                        char[] goodName = getProperDirName(newName.ToCharArray());
-                        d.dir_name= goodName;
-                    }
-
-                    Program.current.entries.RemoveAt(j);
-                    Program.current.entries.Insert(j, d);
-                    Program.current.WriteDirectory();
-                }
+                Directory dir = changeMyCurrentDirectory(oldName, false, false);
+                if (dir == null)
+                    Console.WriteLine($"The Path {oldName} Is not exist");
                 else
                 {
-                    Console.WriteLine("Doublicate File Name exist or file cannot be found");
+                    oldName = path[path.Length - 1];
+
+                    int j = dir.searchDirectory(oldName);
+                    if (j != -1)
+                    {
+                        if (dir.searchDirectory(newName) == -1)
+                        {
+                            DirectoryEntry d = dir.entries[j];
+
+                            if (d.dir_attr == 0x0)
+                            {
+                                string[] fileName = newName.Split('.');
+                                char[] goodName = getProperFileName(fileName[0].ToCharArray(), fileName[1].ToCharArray());
+                                d.dir_name = goodName;
+                            }
+                            else if (d.dir_attr == 0x10)
+                            {
+                                char[] goodName = getProperDirName(newName.ToCharArray());
+                                d.dir_name = goodName;
+                            }
+
+                            dir.entries.RemoveAt(j);
+                            dir.entries.Insert(j, d);
+                            dir.WriteDirectory();
+                        }
+                        else
+                        {
+                            Console.WriteLine("Doublicate File Name exist or file cannot be found");
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("The System Cannot Find the File specified");
+                    }
+
                 }
             }
             else
             {
-                Console.WriteLine("The System Cannot Find the File specified");
+                int j = Program.current.searchDirectory(oldName);
+                if (j != -1)
+                {
+                    if (Program.current.searchDirectory(newName) == -1)
+                    {
+                        DirectoryEntry d = Program.current.entries[j];
+
+
+
+                        if (d.dir_attr == 0x0)
+                        {
+                            string[] fileName = newName.Split('.');
+                            char[] goodName = getProperFileName(fileName[0].ToCharArray(), fileName[1].ToCharArray());
+                            d.dir_name = goodName;
+                        }
+                        else if (d.dir_attr == 0x10)
+                        {
+                            char[] goodName = getProperDirName(newName.ToCharArray());
+                            d.dir_name = goodName;
+                        }
+
+                        Program.current.entries.RemoveAt(j);
+                        Program.current.entries.Insert(j, d);
+                        Program.current.WriteDirectory();
+                    }
+                    else
+                    {
+                        Console.WriteLine("Doublicate File Name exist or file cannot be found");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("The System Cannot Find the File specified");
+                }
             }
 
-            Directory rootDirectory = new Directory("M:", 0x10, 5, null);
-            Program.current = rootDirectory;
-            Program.current.ReadDirectory();
         }
+
+        public static void del(string fileName)
+        {
+            string[] path = fileName.Split("\\");
+            if (path.Length > 1)
+            {
+                Directory dir = changeMyCurrentDirectory(fileName, false, false);
+                if (dir == null)
+                    Console.WriteLine($"The Path {fileName} Is not exist");
+                else
+                {
+                    fileName = path[path.Length - 1];
+
+                    int j = dir.searchDirectory(fileName);
+                    if (j != -1)
+                    {
+                        if (dir.entries[j].dir_attr == 0x0)
+                        {
+                            int fc = dir.entries[j].firs_cluster;
+                            int sz = dir.entries[j].dir_fileSize;
+
+                            FILE file = new FILE(fileName, 0x0, fc, dir, null, sz);
+                            file.deleteFile();
+
+                        }
+                        else
+                        {
+                            Console.WriteLine($"The System Cannot Find The file specified {fileName}");
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("The System Cannot Find The file specified");
+                    }
+                }        
+            }
+            else 
+            {
+                int j = Program.current.searchDirectory(fileName);
+                if (j != -1)
+                {
+                    if (Program.current.entries[j].dir_attr == 0x0)
+                    {
+                        int fc = Program.current.entries[j].firs_cluster;
+                        int sz = Program.current.entries[j].dir_fileSize;
+
+                        FILE file = new FILE(fileName, 0x0, fc, Program.current, null, sz);
+                        file.deleteFile();
+
+                    }
+                    else
+                    {
+                        Console.WriteLine("The System Cannot Find The file specified");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("The System Cannot Find The file specified");
+                }
+            }
+
+        }
+
+        public static void copy(string source, string dest)
+        {
+            int j = Program.current.searchDirectory(source);
+            int fc;
+            int sz;
+
+            if (source == dest)
+            {
+                Console.WriteLine("the file cannot be copied onto itself");
+                return;
+            }
+
+
+            if (j != -1)
+            {
+                fc = FAT.GetEmptyCulster();
+                sz =Program.current.entries[j].dir_fileSize;
+                //string[] myWay = dest.Split("\\");
+
+                Directory dir = changeMyCurrentDirectory(dest, false, true);
+                if (dir == null)
+                {
+                    Console.WriteLine($"The Path {source} Is not exist");
+                    return;
+                }
+
+                int x = dir.searchDirectory(source);
+                if (x != -1)
+                {
+                    Console.Write("The File is aleary existed, Do you want to overwrite it ?, please enter Y for yes or N for no:");
+                    string choice = Console.ReadLine().ToLower();
+                    if (choice.Equals("y"))
+                    {
+
+                        // extracting the content from the original file
+                        int f = Program.current.entries[j].firs_cluster;                       
+                        string content = null;
+                        FILE file = new FILE(source, 0x0, f, dir, content, sz);
+                        file.ReadFile();
+                        content = file.content; 
+
+
+                        // making the copy file 
+                        FILE newFile = new FILE(source, 0X0, fc, dir, content, sz);
+                        newFile.writeFile();
+
+                        DirectoryEntry d = new DirectoryEntry(new string(source), 0X0, fc, sz);
+                        dir.entries.Add(d);
+                        dir.WriteDirectory();
+
+                    }
+                    else
+                    {
+                        return;
+                    }
+                }
+                else
+                {
+
+                    // extracting the content from the original file
+                    int f = Program.current.entries[j].firs_cluster;
+                    string content = null;
+                    FILE file = new FILE(source, 0x0, f, dir, content, sz);
+                    file.ReadFile();
+                    content = file.content;
+
+
+                    // making the copy file 
+                    FILE newFile = new FILE(source, 0X0, fc, dir, content, sz);
+                    newFile.writeFile();
+
+                    DirectoryEntry d = new DirectoryEntry(new string(source), 0X0, fc, sz);
+                    dir.entries.Add(d);
+                    dir.WriteDirectory();
+
+                }
+            }
+            else
+            {
+                Console.WriteLine($"The File ${source} Is Not Existed In your disk");
+            }
+        }//copy function
 
         public static char[] getProperFileName(char[] fname, char[] extension)// asd1   .   txt
         {
@@ -586,6 +813,7 @@
             }
             return dir_name;
         }
+
         public static char[] getProperDirName(char[] name)
         {
             char[] dir_name = new char[11];
@@ -616,109 +844,6 @@
         }
 
 
-        public static void del(string fileName)
-        {
-            string[] path = fileName.Split("\\");
-            if (path.Length > 1)
-            {
-                for (int i = 1; i < path.Length-1; i++)
-                    moveToDirUsedInAnother(path[i]);
-
-                fileName = path[path.Length - 1];
-            }
-            int j = Program.current.searchDirectory(fileName);
-            if (j != -1)
-            {
-                if (Program.current.entries[j].dir_attr == 0x0)
-                {
-                    int fc = Program.current.entries[j].firs_cluster;
-                    int sz = Program.current.entries[j].dir_fileSize;
-                    
-                    FILE file = new FILE(fileName, 0x0, fc, Program.current, null, sz);
-                    file.deleteFile();
-
-                }
-                else {
-                    Console.WriteLine("The System Cannot Find The file specified");
-                }
-            }
-            else {
-                Console.WriteLine("The System Cannot Find The file specified");
-            }
-
-            Directory rootDirectory = new Directory("M:", 0x10, 5, null);
-            Program.current = rootDirectory;
-            Program.current.ReadDirectory();
-        }
-
-        public static void copy(string source, string dest)
-        {
-            int j = Program.current.searchDirectory(source);
-            int fc;
-            int sz;
-
-            if (source == dest)
-            {
-                Console.WriteLine("the file cannot be copied onto itself");
-                return;
-            }
-
-
-            if (j != -1)
-            {
-                fc = Program.current.entries[j].firs_cluster;
-                sz =Program.current.entries[j].dir_fileSize;
-                string[] myWay = dest.Split("\\");
-                for (int i = 1; i < myWay.Length; i++)
-                    moveToDirUsedInAnother(myWay[i]);
-
-
-                int x = Program.current.searchDirectory(source);
-                if (x != -1)
-                {
-                    Console.Write("The File is aleary existed, Do you want to overwrite it ?, please enter Y for yes or N for no:");
-                    string choice = Console.ReadLine().ToLower();
-                    if (choice.Equals("y"))
-                    {
-
-             
-                        DirectoryEntry d = new DirectoryEntry(new string(source), 0X0, fc, sz);
-
-                        Program.current.entries.Add(d);
-
-                    }
-                    else
-                    {
-                        return;
-                    }
-                }
-                else
-                {
-   
-
-                    DirectoryEntry d = new DirectoryEntry(new string(source), 0X0, fc, sz);
-
-                    Program.current.entries.Add(d);
-
-                    Program.current.WriteDirectory();
-
-                }
-
-                Directory rootDirectory = new Directory("M:", 0x10, 5, null);
-                Program.current = rootDirectory;
-                Program.current.ReadDirectory();
-
-            }
-            else
-            {
-                Console.WriteLine($"The File ${source} Is Not Existed In your disk");
-            }
-        }
-
     }
 
-
 }
-
-
-

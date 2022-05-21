@@ -8,19 +8,19 @@
     "net6.0": []
   },
   "packageFolders": {
-    "C:\\Users\\Dell\\.nuget\\packages\\": {}
+    "C:\\Users\\Inspiron_5587G5\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Dell\\Desktop\\Simple Shell\\Simple Shell\\Simple Shell.csproj",
+      "projectUniqueName": "C:\\Users\\Inspiron_5587G5\\source\\repos\\Simple Shell\\Simple Shell\\Simple Shell.csproj",
       "projectName": "Simple Shell",
-      "projectPath": "C:\\Users\\Dell\\Desktop\\Simple Shell\\Simple Shell\\Simple Shell.csproj",
-      "packagesPath": "C:\\Users\\Dell\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Dell\\Desktop\\Simple Shell\\Simple Shell\\obj\\",
+      "projectPath": "C:\\Users\\Inspiron_5587G5\\source\\repos\\Simple Shell\\Simple Shell\\Simple Shell.csproj",
+      "packagesPath": "C:\\Users\\Inspiron_5587G5\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\Inspiron_5587G5\\source\\repos\\Simple Shell\\Simple Shell\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\Dell\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\Inspiron_5587G5\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
@@ -60,7 +60,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.202\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.203\\RuntimeIdentifierGraph.json"
       }
     }
   }

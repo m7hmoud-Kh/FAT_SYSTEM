@@ -9,7 +9,7 @@
 
     class Program
     {
-        public static string PATH_ON_PC = "C:\\Users\\Dell\\Desktop\\Simple Shell\\Simple Shell\\miniFat.txt";
+        public static string PATH_ON_PC = @"C:\Users\Inspiron_5587G5\source\repos\Simple Shell\Simple Shell\miniFat.txt";
         public static Directory current;
         public static string currentPath;
         static void Main(string[] args)
